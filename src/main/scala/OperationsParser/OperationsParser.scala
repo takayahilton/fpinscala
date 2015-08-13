@@ -5,29 +5,30 @@ import scala.io.Source
 import scala.util.parsing.combinator.RegexParsers
 
 
-object OperationsParser extends RegexParsers {
+object SParser extends RegexParsers {
 
-  def number: Parser[Double] = """\d+(\.\d*)?""".r ^^ {
-    _.toDouble
+  def number:Parser[Int] = """\d+""".r ^^{
+    _.toInt
   }
 
-  def factor: Parser[Double] = number | "(" ~> expr <~ ")"
+  def factor:Parser[Int] = number | "(" ~> expr <~")"
 
-  def term: Parser[Double] = factor ~ rep("*" ~ factor | "/" ~ factor) ^^ {
-    case number ~ list => list.foldLeft(number) {
-      case (x, "*" ~ y) => x * y
-      case (x, "/" ~ y) => x / y
-    }
-  }
-
-  def expr:Parser[Double] = term ~ rep("+" ~ expr |"-" ~ expr )^^{
+  def term:Parser[Int] = factor ~ rep("*" ~factor |"/" ~ factor) ^^{
     case number ~ list => list.foldLeft(number){
-      case (x, "+" ~ y) => x + y
-      case (x, "-" ~ y) => x - y
+      case (a,"*" ~ b) => a * b
+      case (a,"/" ~b) => a / b
     }
   }
 
-  def apply(input: String) = parseAll(expr, input)
+  def expr:Parser[Int] = term ~ rep("+" ~ term|"-" ~ term) ^^ {
+    case number ~ list => list.foldLeft(number){
+      case (a,"+" ~ b) => a+b
+      case (a,"-" ~ b) => a-b
+    }
+  }
+
+  def apply(input:String) = parseAll(expr,input)
+
 
 }
 
