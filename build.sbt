@@ -14,4 +14,4 @@ libraryDependencies ++= Seq(
 scalacOptions += "-feature"
 
 
-initialCommands += "import OperationsParser._"
+initialCommands += "import Parser._"
