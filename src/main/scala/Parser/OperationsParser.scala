@@ -1,4 +1,4 @@
-package OperationsParser
+package Parser
 
 
 import scala.util.parsing.combinator.RegexParsers

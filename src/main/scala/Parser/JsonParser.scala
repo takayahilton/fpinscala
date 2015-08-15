@@ -9,9 +9,9 @@ object JsonParser extends RegexParsers {
 
   sealed trait Json
 
-  case class JObject(get: Option[Map[Key, Json]]) extends Json
+  case class JObject(get: Map[Key, Json]) extends Json
 
-  case class JArray(get: Option[IndexedSeq[Json]]) extends Json
+  case class JArray(get: IndexedSeq[Json]) extends Json
 
   case class JNumber(get: Double) extends Json
 
@@ -21,7 +21,7 @@ object JsonParser extends RegexParsers {
 
   case object JUndefined extends Json
 
-  def string: Parser[JString] = ("\".?\"" | "'.?'".r) ^^ {
+  def string: Parser[JString] = "'" ~> "[^']*".r <~ "'" ^^ {
     s => JString(s)
   }
 
@@ -29,14 +29,23 @@ object JsonParser extends RegexParsers {
     n => JNumber(n.toDouble)
   }
 
+  def jnull: Parser[JNul.type] = "null" ^^ { n => JNul}
+
   def member: Parser[Map[Key, Json]] = string ~ ":" ~ json ^^ {
     case key ~ ":" ~ json => Map(key.get -> json)
   }
 
-  def json: Parser[Json] = string | number | obj
+  def json: Parser[Json] = string | number | obj | arr | jnull
 
-  def obj: Parser[JObject] =  "{" ~> member <~ "}" ^^ {
-    case member => JObject(Some(member))
+  def obj: Parser[JObject] = "{" ~> repsep(  member  , "," )  <~ "}" ^^ {
+    case  list => JObject(
+      list.foldLeft(Map[Key,Json]()){
+      (b,a)=>b ++ a
+    })
+  }
+
+  def arr:Parser[JArray] = "[" ~> repsep(json , ",")  <~ "]"  ^^{
+    case list => JArray(list.toIndexedSeq)
   }
 
 
